@@ -1,4 +1,4 @@
-name: Create hotfix branches
+name: Create branches
 on:
   # To manually trigger
   workflow_dispatch:
