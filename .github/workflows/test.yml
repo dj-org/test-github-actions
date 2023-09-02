@@ -41,4 +41,4 @@ jobs:
           head: ${{ inputs.branch-name }}
           base: main
           title: "An automatically created PR!"
-          reviewers:  ${{ join(github.event.pull_request.requested_reviewers.*.login, ',') }}
+          reviewers: ${{ join(github.event.pull_request.requested_reviewers.*.login, ',') }}
