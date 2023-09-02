@@ -1,0 +1,44 @@
+name: Create hotfix branches
+on:
+  # To manually trigger
+  workflow_dispatch:
+    inputs:
+      branch-name:
+        description: 'Branch name to create'
+        required: true
+
+jobs:
+  create-branche-and-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          # Number of commits to fetch. 0 indicates all history for all branches and tags.
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Branch
+        shell: bash
+        run: |
+          git checkout -b ${{ inputs.branch-name }}
+      - name: Add line to README
+        run: |
+          README_PATH="${GITHUB_WORKSPACE}/README.md"
+          NEW_LINE="This is a new line added by the workflow."
+          echo "$NEW_LINE" >> "$README_PATH"
+      - name: Set New Version and Push
+        shell: bash
+        run: |
+          # Set version
+          git config --global user.email "bot@ghaction.com"
+          git config --global user.name "Release BOT"
+          git commit -am "${{ inputs.branch-name }}-readme-update"
+          git push --set-upstream origin ${{ inputs.branch-name }}
+      - name: Create pull request
+        uses: thomaseizinger/create-pull-request@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          head: ${{ inputs.branch-name }}
+          base: main
+          title: "An automatically created PR!"
+          reviewers:  ${{ join(github.event.pull_request.requested_reviewers.*.login, ',') }}
