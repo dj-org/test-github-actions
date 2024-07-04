@@ -1,0 +1,39 @@
+name: Create branches
+on:
+  # To manually trigger
+  workflow_dispatch:
+    inputs:
+      git-tag:
+        description: 'Git tag to promote'
+        required: true
+      new-version:
+        description: 'New version'
+        required: true
+
+
+jobs:
+  create-branche-and-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          git-ref: ${{ inputs.git-tag }}
+      - name: Set New Version
+        run: |
+          NEW_VERSION="${{ inputs.new-version }}"
+          FILE="build.txt"
+          # Update the version in build.txt
+          sed -i.bak "s/^version=.*/version=${NEW_VERSION}/" $FILE
+          echo "Version updated to ${NEW_VERSION} in $FILE"
+      - name: Commit and push the new tag
+        shell: bash
+        run: |
+          # Set version
+          git config --global user.email "bot@ghaction.com"
+          git config --global user.name "Release BOT"
+          # Commt and create a tag and puish without creating a branch
+          git commit -am "${{ inputs.branch-name }}-version-update"
+          git tag -a "${{ inputs.new-version }}" -m "Version ${NEW_VERSION}"
+          git push origin "${{ inputs.new-version }}"
