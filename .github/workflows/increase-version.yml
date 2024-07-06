@@ -1,4 +1,4 @@
-name: Create branches
+name: Increase version
 on:
   # To manually trigger
   workflow_dispatch:

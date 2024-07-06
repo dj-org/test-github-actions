@@ -1,4 +1,4 @@
-name: Create branches
+name: Test
 on:
   # To manually trigger
   workflow_dispatch:
