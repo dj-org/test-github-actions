@@ -12,7 +12,7 @@ on:
 
 
 jobs:
-  create-branche-and-pr:
+  version-update:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
