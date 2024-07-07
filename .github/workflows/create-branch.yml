@@ -44,7 +44,7 @@ jobs:
           git config --global user.name "Release BOT"
           git checkout -b ${{ inputs.new-branch-name }}
           # commit the changes
-            git commit -am "${{ inputs.new-branch-name }}-version-update"
+            git commit -am "${{ inputs.new-branch-name }}-version-update snapshsot"
           # Push the branch
           git push --set-upstream origin ${{ inputs.new-branch-name }}
           
