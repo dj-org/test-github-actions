@@ -23,7 +23,7 @@ jobs:
       - name: Append SNAPSHOT to the version
         run: |
           FILE="build.txt"
-          # Get the version from build.txt
+          # Get the version from build.txt 123
           VERSION=$(awk -F'=' '/^version=/ {print $2}' "$FILE")
           echo "Current version is $VERSION"
           #if version is empty, exit
