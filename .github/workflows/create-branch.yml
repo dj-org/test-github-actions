@@ -1,6 +1,6 @@
 name: Create branches
 on:
-  # To manually trigger
+  # To manually trigger test
   workflow_dispatch:
     inputs:
       git-tag:
