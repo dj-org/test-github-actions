@@ -2,3 +2,14 @@ name: External Action Manual Approval
 
 on:
   workflow_dispatch:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fake step with 30s delay
+        id: fake-step
+        run: |
+          echo "Starting fake step..."
+          sleep 30
+          echo "Completed fake step..."
