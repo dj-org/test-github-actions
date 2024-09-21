@@ -39,7 +39,7 @@ jobs:
           echo "Comment: $comment"
           echo "User Login: $user_login"
       - name: Deploy to production
-        with:
+        env:
           PROD_TEST_SECRET: ${{ secrets.PROD_TEST_SECRET }}
         run: |
           # Deploy to production with the secret
