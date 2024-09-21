@@ -31,9 +31,9 @@ jobs:
           # Make API request using gh CLI and capture the response
           response=$(gh api /repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/approvals)
           # Extract values using jq and store them in bash variables
-          state=$(echo "$json_data" | jq -r '.[0].state')
-          comment=$(echo "$json_data" | jq -r '.[0].comment')
-          user_login=$(echo "$json_data" | jq -r '.[0].user.login')
+          state=$(echo "$response" | jq -r '.[0].state')
+          comment=$(echo "$response" | jq -r '.[0].comment')
+          user_login=$(echo "$response" | jq -r '.[0].user.login')
           # Output the variables to confirm extraction
           echo "State: $state"
           echo "Comment: $comment"
