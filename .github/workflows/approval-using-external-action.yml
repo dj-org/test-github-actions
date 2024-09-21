@@ -29,6 +29,7 @@ jobs:
           secret: ${{ secrets.GITHUB_TOKEN }}
           approvers: dhananjay12
           minimum-approvals: 1
+          timeout-minutes: 5
           issue-title: "Deploying to prod from"
           issue-body: "Please approve or deny the deployment"
           exclude-workflow-initiator-as-approver: false
