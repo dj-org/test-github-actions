@@ -27,14 +27,15 @@ jobs:
       - name: Wait for approval
         uses: trstringer/manual-approval@v1
         with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
           approvers: dhananjay12
           minimum-approvals: 1
           timeout-minutes: 5
           issue-title: "Deploying to prod from"
           issue-body: "Please approve or deny the deployment"
           exclude-workflow-initiator-as-approver: false
-          additional-approved-words: "approve", "approved", "lgtm", "yes"
-          additional-denied-words: "deny", "denied", "no"
+          additional-approved-words: 'approve, approved, lgtm, yes'
+          additional-denied-words: 'deny, denied, no'
       - name: Deploy to production
         env:
           PROD_TEST_SECRET: ${{ secrets.PROD_TEST_SECRET }}
