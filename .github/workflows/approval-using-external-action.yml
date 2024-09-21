@@ -13,3 +13,30 @@ jobs:
           echo "Starting fake step..."
           sleep 30
           echo "Completed fake step..."
+  deploy:
+    runs-on: ubuntu-latest
+    environment: release
+    needs: build-and-test
+    steps:
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "$GITHUB_CONTEXT"
+      - name: Wait for approval
+        uses: trstringer/manual-approval@v1
+        with:
+          secret: ${{ secrets.GITHUB_TOKEN }}
+          approvers: dhananjay12
+          minimum-approvals: 1
+          issue-title: "Deploying to prod from"
+          issue-body: "Please approve or deny the deployment"
+          exclude-workflow-initiator-as-approver: false
+          additional-approved-words: "approve", "approved", "lgtm", "yes"
+          additional-denied-words: "deny", "denied", "no"
+      - name: Deploy to production
+        env:
+          PROD_TEST_SECRET: ${{ secrets.PROD_TEST_SECRET }}
+        run: |
+          # Deploy to production with the secret
+          echo "Deploying to production..."
