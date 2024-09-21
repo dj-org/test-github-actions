@@ -29,7 +29,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Make API request using gh CLI and capture the response
-          response=$(gh api /repos/${OWNER}/${REPO}/actions/runs/${RUN_ID}/approvals)
+          response=$(gh api /repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/approvals)
           # Extract values using jq and store them in bash variables
           state=$(echo "$json_data" | jq -r '.[0].state')
           comment=$(echo "$json_data" | jq -r '.[0].comment')
