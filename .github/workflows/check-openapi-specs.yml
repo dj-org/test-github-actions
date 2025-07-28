@@ -13,9 +13,125 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Setup JDK ${{ inputs.java-version }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ inputs.java-version }}
-          distribution: ${{ inputs.distribution }}
-          cache: 'maven'
+      - name: Check for OpenAPI spec changes
+        id: check-specs
+        run: |
+          specs_changed=false
+          openapi_files=""
+
+          # Get list of changed files (modify this based on your trigger)
+          # For push events:
+          changed_files=$(git diff --name-only HEAD~1 HEAD)
+
+          # For pull requests, you might use:
+          # changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          echo "Changed files:"
+          echo "$changed_files"
+
+          # Check each changed file
+          for file in $changed_files; do
+            # Check if file exists and has .yaml or .yml extension
+            if [[ -f "$file" && ("$file" == *.yaml || "$file" == *.yml) ]]; then
+              echo "Checking YAML file: $file"
+
+              # Check if the file contains 'openapi' key at the root level
+              if grep -q "^openapi:" "$file" || grep -q "^openapi " "$file"; then
+                echo "✅ OpenAPI spec detected in: $file"
+                specs_changed=true
+
+                # Add to list of OpenAPI files
+                if [ -z "$openapi_files" ]; then
+                  openapi_files="$file"
+                else
+                  openapi_files="$openapi_files,$file"
+                fi
+
+                # Create temp directories for this file in workspace
+                file_basename=$(basename "$file" | sed 's/\.[^.]*$//')
+                temp_dir="${GITHUB_WORKSPACE}/.github_temp/openapi_${file_basename}"
+                mkdir -p "$temp_dir"
+
+                # Save current version
+                current_file="$temp_dir/current.yaml"
+                cp "$file" "$current_file"
+                echo "📄 Current version saved to: $current_file"
+
+                # Save original version if it exists
+                original_file="$temp_dir/original.yaml"
+                if git show HEAD~1:"$file" > "$original_file" 2>/dev/null; then
+                  echo "📄 Original version saved to: $original_file"
+
+                  echo "🔄 Showing diff for $file:"
+                  git diff HEAD~1 HEAD -- "$file" || true
+                else
+                  echo "⚠️  File $file is newly added (no previous version)"
+                  rm -f "$original_file"  # Remove empty file
+                fi
+
+                echo "---"
+              else
+                echo "❌ Not an OpenAPI spec: $file"
+              fi
+            fi
+          done
+
+          # Set output variables
+          echo "specs_changed=$specs_changed" >> $GITHUB_OUTPUT
+          echo "openapi_files=$openapi_files" >> $GITHUB_OUTPUT
+          echo "Final result: specs_changed=$specs_changed"
+          echo "OpenAPI files found: $openapi_files"
+
+      - name: Process OpenAPI spec files
+        if: steps.check-specs.outputs.specs_changed == 'true'
+        run: |
+          echo "🔍 Processing OpenAPI specs..."
+
+          # Get the list of OpenAPI files from the previous step
+          IFS=',' read -ra OPENAPI_FILES <<< "${{ steps.check-specs.outputs.openapi_files }}"
+
+          for file in "${OPENAPI_FILES[@]}"; do
+            echo "🔍 Processing OpenAPI spec: $file"
+
+            # Create file-specific paths
+            file_basename=$(basename "$file" | sed 's/\.[^.]*$//')
+            temp_dir="${GITHUB_WORKSPACE}/.github_temp/openapi_${file_basename}"
+            current_file="$temp_dir/current.yaml"
+            original_file="$temp_dir/original.yaml"
+
+            echo "📂 Working with files:"
+            echo "  Current:  $current_file"
+
+            if [ -f "$original_file" ]; then
+              echo "  Original: $original_file"
+
+              # Both files available - you can compare them
+              echo "🔄 Comparing versions..."
+              result=$(docker run --rm -t \
+                -v $(pwd):/specs:ro \
+                openapitools/openapi-diff:2.1.2 /specs/$original_file /specs/$current_file)
+              
+              # Check compatibility
+              if echo "$result" | grep -q "API changes are backward compatible"; then
+                echo "✅ API is backward compatible"
+                compatible=true
+              elif echo "$result" | grep -q "API changes broke backward compatibility"; then
+                echo "❌ API broke backward compatibility"
+                compatible=false
+              else
+                echo "⚠️  Could not determine compatibility status"
+                compatible=unknown
+              fi
+              echo "Compared: $old_spec -> $new_spec"
+              echo "Result: $compatible"
+              # Put the $result in PR comments
+              
+            else
+              echo "  Original: (new file - no previous version)"
+            fi
+            echo "================================"
+          done
+      - name: Skip validation
+        if: steps.check-specs.outputs.specs_changed == 'false'
+        run: |
+          echo "No OpenAPI specs changed, skipping validation"
