@@ -61,11 +61,12 @@ jobs:
 
                 # Save original version if it exists
                 original_file="$temp_dir/original.yaml"
-                if git show HEAD~1:"$file" > "$original_file" 2>/dev/null; then
+                base_sha="${{ github.event.pull_request.base.sha }}"
+                if git show $base_sha:"$file" > "$original_file" 2>/dev/null; then
                   echo "📄 Original version saved to: $original_file"
 
                   echo "🔄 Showing diff for $file:"
-                  git diff HEAD~1 HEAD -- "$file" || true
+                  git diff $base_sha HEAD -- "$file" || true
                 else
                   echo "⚠️  File $file is newly added (no previous version)"
                   rm -f "$original_file"  # Remove empty file
@@ -109,10 +110,10 @@ jobs:
 
               # Both files available - you can compare them
               echo "🔄 Comparing versions..."
-              result=$(docker run --rm -t \
-                -v $temp_dir:/$temp_dir:ro \
+              result=$(docker run --rm \
+                -v $temp_dir:$temp_dir:ro \
                 openapitools/openapi-diff:2.1.2 $original_file $current_file)
-              
+              echo "$result"
               # Check compatibility
               if echo "$result" | grep -q "API changes are backward compatible"; then
                 echo "✅ API is backward compatible"
@@ -124,7 +125,6 @@ jobs:
                 echo "⚠️  Could not determine compatibility status"
                 compatible=unknown
               fi
-              echo "Compared: $old_spec -> $new_spec"
               echo "Result: $compatible"
               # Put the $result in PR comments
               
