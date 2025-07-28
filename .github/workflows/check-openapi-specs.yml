@@ -110,8 +110,8 @@ jobs:
               # Both files available - you can compare them
               echo "🔄 Comparing versions..."
               result=$(docker run --rm -t \
-                -v $(pwd):/specs:ro \
-                openapitools/openapi-diff:2.1.2 /specs/$original_file /specs/$current_file)
+                -v $(temp_dir):/specs:ro \
+                openapitools/openapi-diff:2.1.2 $original_file $current_file)
               
               # Check compatibility
               if echo "$result" | grep -q "API changes are backward compatible"; then
