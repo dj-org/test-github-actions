@@ -16,20 +16,17 @@ jobs:
         with:
           # Fetch at least 2 commits for diff
           fetch-depth: 2
-          # For PRs, also fetch the base branch
-          ref: ${{ github.head_ref }}
       - name: Check for OpenAPI spec changes
         id: check-specs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           specs_changed=false
           openapi_files=""
 
-          # Get list of changed files (modify this based on your trigger)
-          # For push events:
-          #changed_files=$(git diff --name-only HEAD~1 HEAD)
-
-          # For pull requests, you might use:
-          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          echo "🔍 Detecting changes for Pull Request..."
+          # For pull requests - use GitHub's built-in file detection
+          changed_files=$(gh pr diff ${{ github.event.number }} --name-only 2>/dev/null || echo "")
 
           echo "Changed files:"
           echo "$changed_files"
