@@ -21,10 +21,10 @@ jobs:
 
           # Get list of changed files (modify this based on your trigger)
           # For push events:
-          changed_files=$(git diff --name-only HEAD~1 HEAD)
+          #changed_files=$(git diff --name-only HEAD~1 HEAD)
 
           # For pull requests, you might use:
-          # changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
 
           echo "Changed files:"
           echo "$changed_files"
