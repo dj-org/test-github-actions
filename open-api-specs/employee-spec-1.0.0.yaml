@@ -105,4 +105,3 @@ components:
       required:
         - name
         - dateOfBirth
-        - age
