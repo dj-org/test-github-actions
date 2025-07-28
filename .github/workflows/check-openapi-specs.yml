@@ -110,7 +110,7 @@ jobs:
               # Both files available - you can compare them
               echo "🔄 Comparing versions..."
               result=$(docker run --rm -t \
-                -v $(temp_dir):/specs:ro \
+                -v $temp_dir:/$temp_dir:ro \
                 openapitools/openapi-diff:2.1.2 $original_file $current_file)
               
               # Check compatibility
